@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-Payment.Worker-a1d0413c-7528-447d-b65e-4e8a24ce0ac0</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Confluent.Kafka" Version="2.14.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Payment.Application\Payment.Services.Application.csproj" />
+    <ProjectReference Include="..\Payment.Infra\Payment.Services.Infra.csproj" />
+  </ItemGroup>
+</Project>

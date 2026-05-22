@@ -1,0 +1,31 @@
+<Solution>
+  <Folder Name="/BuildingBlocks/" />
+  <Folder Name="/BuildingBlocks/Constract/">
+    <Project Path="BuildingBlocks.Contracts/BuildingBlocks.Contracts.csproj" Id="6a5a9df5-5a91-4e6c-9832-7961b00e39cd" />
+  </Folder>
+  <Folder Name="/BuildingBlocks/Docker/">
+    <File Path="docker-compose.yml" />
+  </Folder>
+  <Folder Name="/BuildingBlocks/Messaging/" />
+  <Folder Name="/BuildingBlocks/Messaging/Kafka/">
+    <Project Path="Payment.Kafka.Producer/BuildingBlocks.Messaging.Kafka.Producer.csproj" Id="6e98bfff-17e1-4daa-b6b5-9217a86ef835" />
+  </Folder>
+  <Folder Name="/BuildingBlocks/Middleware/">
+    <Project Path="BuildingBlocks.Middleware/BuildingBlocks.Middleware.csproj" Id="54f88117-3949-4f10-97df-90071c48a718" />
+  </Folder>
+  <Folder Name="/BuildingBlocks/Persistence/">
+    <Project Path="Payment.Messaging.Infra.Persistence/BuildingBlocks.Messaging.Persistence.csproj" Id="d8be9734-1f0a-4d87-a236-1dcc4ccc86fb" />
+  </Folder>
+  <Folder Name="/Services/" />
+  <Folder Name="/Services/Notification/">
+    <Project Path="Payment.Notification.Infrastructure/Payment.Services.Notification.Infrastructure.csproj" />
+    <Project Path="Payment.Notification.Worker/Payment.Services.Notification.Worker.csproj" />
+  </Folder>
+  <Folder Name="/Services/Payment/">
+    <Project Path="Payment.API/Payment.Services.API.csproj" />
+    <Project Path="Payment.Application/Payment.Services.Application.csproj" />
+    <Project Path="Payment.Domain/Payment.Services.Domain.csproj" />
+    <Project Path="Payment.Infra/Payment.Services.Infra.csproj" />
+    <Project Path="Payment.Worker/Payment.Services.Worker.csproj" />
+  </Folder>
+</Solution>
