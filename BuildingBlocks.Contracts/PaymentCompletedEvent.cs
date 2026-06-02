@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BuildingBlocks.Contracts
+﻿namespace BuildingBlocks.Contracts
 {
-    public record PaymentCompletedEvent(string PaymentId, string CorrelationId);
+    public record PaymentCompletedEvent(string PaymentId, string CorrelationId) : IntegrationEvent;
 }

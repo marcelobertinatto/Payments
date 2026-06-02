@@ -45,6 +45,21 @@ services:
     ports:
       - "8000:8000"
 
+  # The visual UI Admin Client tool
+  dynamodb-admin:
+    image: aaronshaf/dynamodb-admin:latest
+    container_name: dynamodb-admin
+    ports:
+      - "8001:8001" # Exposes the UI to your local browser on port 8001
+    environment:
+      # Connects directly to your container name above on its internal port 8000
+      - DYNAMO_ENDPOINT=http://dynamodb:8000 
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=local
+      - AWS_SECRET_ACCESS_KEY=local
+    depends_on:
+      - dynamodb # Ensures the database starts before the UI boots up
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq

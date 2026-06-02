@@ -7,7 +7,6 @@ namespace BuildingBlocks.Messaging.Persistence.Model
     {
         [DynamoDBHashKey]
         public string Id { get; set; }
-
         public string CorrelationId { get; set; }
         public decimal Amount { get; set; }
         public string Currency { get; set; }

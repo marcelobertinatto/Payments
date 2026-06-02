@@ -3,13 +3,14 @@ using BuildingBlocks.Middleware;
 using Payment.Services.API.DI;
 using Payment.Services.API.Endpoints;
 using Payment.Services.Infra.Database;
+using Payment.Services.Infra.Database.Interface;
 using Scalar.AspNetCore;
 
 namespace Payment.Services.API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,17 @@ namespace Payment.Services.API
             builder.Services.AddApplication();
             builder.Services.AddInfrastructure();
 
+            var assembly = typeof(DynamoDbInitializer).Assembly;
+            var definitions = assembly.GetTypes()
+                .Where(t => typeof(IDynamoDbTableDefinition).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+
+            foreach (var type in definitions)
+            {
+                builder.Services.AddSingleton(typeof(IDynamoDbTableDefinition), type);
+            }
+
+            builder.Services.AddSingleton<DynamoDbInitializer>();
+
             // Add services to the container.
             builder.Services.AddAuthorization();
 
@@ -27,6 +39,16 @@ namespace Payment.Services.API
 
             var app = builder.Build();
 
+            using (var scope = app.Services.CreateScope())
+            {
+                var initializer = scope.ServiceProvider.GetRequiredService<DynamoDbInitializer>();
+
+                // Call the method that reads your IDynamoDbTableDefinition list and creates the tables
+                // Note: If your method name is different (e.g., CreateTablesAsync), change it here
+                await initializer.InitializeAsync();
+            }
+
+            app.UseMiddleware<GlobalExceptionMiddleware>();
             app.UseMiddleware<CorrelationIdMiddleware>();
 
             // Configure the HTTP request pipeline.
@@ -38,7 +60,7 @@ namespace Payment.Services.API
                     options.WithTitle("Scalar Example API")
                         .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
                 });
-            }
+            }            
 
             app.UseHttpsRedirection();
 
@@ -46,7 +68,7 @@ namespace Payment.Services.API
 
             app.MapPaymentEndpoint();
 
-            app.Run();
+            await app.RunAsync();
         }
     }
 }
