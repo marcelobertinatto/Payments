@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.Middleware.Exceptions;
 using Confluent.Kafka;
+using Microsoft.Extensions.Logging;
 using Payment.Services.Domain.Interfaces;
 using System.Text.Json;
 
@@ -8,9 +9,11 @@ namespace Payment.Services.Infra.Messaging
     public class KafkaEventBus : IEventBus
     {
         private readonly IProducer<string, string> _producer;
+        private readonly ILogger<KafkaEventBus> _logger;
 
-        public KafkaEventBus()
+        public KafkaEventBus(ILogger<KafkaEventBus> logger)
         {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             var config = new ProducerConfig
             {
                 BootstrapServers = "localhost:29092",
@@ -38,7 +41,7 @@ namespace Payment.Services.Infra.Messaging
             }
             catch (Exception ex)
             {
-                throw new EventBusException($"Unable to publish event to topic '{topic}'. Error: '{ex.Message}'.");
+                _logger.LogError($"There is an error happening. Error: '{ex.Message}'.");
             }
         }
     }

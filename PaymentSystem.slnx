@@ -6,6 +6,9 @@
   <Folder Name="/BuildingBlocks/Docker/">
     <File Path="docker-compose.yml" />
   </Folder>
+  <Folder Name="/BuildingBlocks/Logging/">
+    <Project Path="BuildingBlocks.Logging/BuildingBlocks.Logging.csproj" Id="0e508e0d-ed3c-4939-978e-7349089ebbce" />
+  </Folder>
   <Folder Name="/BuildingBlocks/Messaging/" />
   <Folder Name="/BuildingBlocks/Messaging/Kafka/">
     <Project Path="Payment.Kafka.Producer/BuildingBlocks.Messaging.Kafka.Producer.csproj" Id="6e98bfff-17e1-4daa-b6b5-9217a86ef835" />
@@ -20,6 +23,7 @@
   <Folder Name="/Services/Notification/">
     <Project Path="Payment.Notification.Infrastructure/Payment.Services.Notification.Infrastructure.csproj" />
     <Project Path="Payment.Notification.Worker/Payment.Services.Notification.Worker.csproj" />
+    <Project Path="Payment.Services.NotificationServices/Payment.Services.NotificationServices.csproj" Id="3c0b89a7-d2f4-4736-98b8-16cf20c69b23" />
   </Folder>
   <Folder Name="/Services/Payment/">
     <Project Path="Payment.API/Payment.Services.API.csproj" />

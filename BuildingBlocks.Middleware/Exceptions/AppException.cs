@@ -1,6 +1,6 @@
 ﻿namespace BuildingBlocks.Middleware.Exceptions
 {
-    public class AppException : Exception
+    public class AppException : System.Exception
     {
         public int StatusCode { get; }
 

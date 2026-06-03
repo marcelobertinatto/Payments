@@ -44,6 +44,7 @@ namespace Payment.Services.Infra.Repositories
             var config = new PutItemOperationConfig
             {
                 // Enforces that this EventId must not already exist
+                //if it does not exist, add
                 ConditionalExpression = new Expression
                 {
                     ExpressionStatement = "attribute_not_exists(EventId)",

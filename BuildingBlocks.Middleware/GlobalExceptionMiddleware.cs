@@ -23,13 +23,13 @@ namespace BuildingBlocks.Middleware
             {
                 await _next(context);
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
                 await HandleExceptionAsync(context,ex);
             }
         }
 
-        private async Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private async Task HandleExceptionAsync(HttpContext context, System.Exception exception)
         {
             _logger.LogError(exception,"Unhandled exception");
 
@@ -49,7 +49,7 @@ namespace BuildingBlocks.Middleware
             await context.Response.WriteAsync(JsonSerializer.Serialize(response));
         }
 
-        private static int GetStatusCode(Exception exception)
+        private static int GetStatusCode(System.Exception exception)
         {
             return exception switch
             {
@@ -57,24 +57,19 @@ namespace BuildingBlocks.Middleware
 
                 NotFoundException => StatusCodes.Status404NotFound,
 
-                EventBusException => StatusCodes.Status503ServiceUnavailable,
-
                 RepositoryException => StatusCodes.Status500InternalServerError,
 
                 _ => StatusCodes.Status500InternalServerError
             };
         }
 
-        private static string GetFriendlyMessage(Exception exception)
+        private static string GetFriendlyMessage(System.Exception exception)
         {
             return exception switch
             {
                 ValidationException => exception.Message,
 
                 NotFoundException => exception.Message,
-
-                EventBusException =>
-                    "Payment was created but the messaging infrastructure is currently unavailable.",
 
                 RepositoryException =>
                     "An error occurred while saving data.",

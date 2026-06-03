@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Payment.Services.Notification.Infrastructure.Initializer;
 using Payment.Services.Notification.Infrastructure.Publisher;
 using Payment.Services.Notification.Infrastructure.Publisher.Interface;
 using RabbitMQ.Client;
@@ -11,9 +13,11 @@ namespace Payment.Services.Notification.Infrastructure.DependencyInjection
         {
             services.AddSingleton<IConnectionFactory>(_ =>
             {
+                var configuration = _.GetRequiredService<IConfiguration>();
+                var hostName = configuration["RabbitMQ:HostName"]!;
                 return new ConnectionFactory
                 {
-                    HostName = "localhost"
+                    HostName = hostName
                 };
             });
 
@@ -31,13 +35,16 @@ namespace Payment.Services.Notification.Infrastructure.DependencyInjection
                 {
                     var connection = provider.GetRequiredService<IConnection>();
 
-                    return connection
+                    IChannel channel = connection
                         .CreateChannelAsync()
                         .GetAwaiter()
                         .GetResult();
+
+                    return channel;
                 });
 
             services.AddSingleton<IRabbitPublisher, RabbitPublisher>();
+            services.AddSingleton<RabbitMqInitializer>();
 
             return services;
         }

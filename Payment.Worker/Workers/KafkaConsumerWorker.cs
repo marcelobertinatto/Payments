@@ -12,11 +12,13 @@ namespace Payment.Services.Worker.Workers
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IEventBus _eventBus;
+        private readonly ILogger<KafkaConsumerWorker> _logger;
 
-        public KafkaConsumerWorker(IServiceScopeFactory scopeFactory, IEventBus eventBus)
+        public KafkaConsumerWorker(IServiceScopeFactory scopeFactory, IEventBus eventBus, ILogger<KafkaConsumerWorker> logger)
         {
             _scopeFactory = scopeFactory;
             _eventBus = eventBus;
+            _logger = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -45,7 +47,7 @@ namespace Payment.Services.Worker.Workers
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Error processing message: " + ex.Message);
+                    _logger.LogError($"There is an error happening. Error: '{ex.Message}'.");
                 }
             }
         }
@@ -58,7 +60,8 @@ namespace Payment.Services.Worker.Workers
 
                 if (evt is null)
                 {
-                    throw new AppException($"Message in Kafka is null.");
+                    _logger.LogWarning($"Message in Kafka is null.");
+                    return;
                 }
 
                 using var scope = _scopeFactory.CreateScope();
@@ -69,7 +72,7 @@ namespace Payment.Services.Worker.Workers
 
                 if (!acquired)
                 {
-                    Console.WriteLine("Duplicate event {EventId}", evt.EventId);
+                    _logger.LogWarning("Duplicate event {EventId}", evt.EventId);
 
                     return;
                 }
@@ -79,7 +82,11 @@ namespace Payment.Services.Worker.Workers
                 var payment = await paymentRepo.GetAsync(evt.id);
 
                 if (payment is null)
+                {
+                    _logger.LogWarning($"Payment not found for ID: {evt.id}");
+
                     return;
+                }
 
                 payment.Complete();
 
@@ -92,7 +99,7 @@ namespace Payment.Services.Worker.Workers
             }
             catch (Exception ex)
             {
-                throw new AppException($"There is an error happening. Error: '{ex.Message}'.");
+                _logger.LogError($"There is an error happening. Error: '{ex.Message}'.");
             }
         }
     }
