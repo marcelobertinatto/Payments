@@ -41,16 +41,6 @@ services:
       KAFKA_CLUSTERS_0_NAME: 'local-cluster'
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: 'kafka:9092' # Uses internal listener
 
-  kafdrop:
-    image: obsidiandynamics/kafdrop
-    container_name: kafdrop
-    depends_on:
-      - kafka
-    ports:
-      - "9000:9000"
-    environment:
-      KAFKA_BROKERCONNECT: kafka:9092
-
   dynamodb:
     image: amazon/dynamodb-local
     container_name: dynamodb
