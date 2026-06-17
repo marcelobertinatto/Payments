@@ -14,5 +14,11 @@ namespace BuildingBlocks.Idempotency.Services.Interfaces
         Task<IdempotencyRecord?> GetAsync(string key, CancellationToken cancellationToken);
 
         Task UpdateReferenceIdAsync(string idempotencyKey, string referenceId, CancellationToken cancellationToken);
+
+        Task MarkProcessingAsync(string key, CancellationToken cancellationToken);
+
+        Task MarkCompletedAsync(string key, CancellationToken cancellationToken);
+
+        Task MarkFailedAsync(string key, CancellationToken cancellationToken);
     }
 }

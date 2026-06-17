@@ -22,14 +22,17 @@ namespace Payment.Services.OutboxWorker
 
                 var eventBus = scope.ServiceProvider.GetRequiredService<IEventBus>();
 
+                //just grab from outboxEvents table and publish into Kafka topic: payments-created
                 var pendingEvents = await outboxRepo.GetPendingAsync();
 
                 foreach (var evt in pendingEvents)
                 {
                     try
                     {
+                        //publish into kafka topic: payments-created
                         await eventBus.PublishRawAsync("payments-created",evt.EventId,evt.Payload);
 
+                        //mark as processed
                         await outboxRepo.MarkProcessedAsync(evt.EventId);
                     }
                     catch (Exception ex)

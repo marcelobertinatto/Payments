@@ -1,5 +1,5 @@
-using Payment.Services.OutboxWorker;
 using Payment.Services.Infra.Database;
+using Payment.Services.OutboxWorker;
 
 namespace OutboxWorker
 {

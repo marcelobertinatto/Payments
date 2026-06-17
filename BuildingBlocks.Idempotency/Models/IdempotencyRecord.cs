@@ -9,10 +9,12 @@ namespace BuildingBlocks.Idempotency.Models
         public string IdempotencyKey { get; set; } = default!;
 
         public string Type { get; set; } = default!;
+        public string Status { get; set; } = default!;
 
         public string ReferenceId { get; set; } = default!;
 
         public string CreatedAtUtc { get; set; } = default!;
+        public string UpdatedAtUtc { get; set; } = default!;
         public long ExpiresAt { get; set; }
     }
 }

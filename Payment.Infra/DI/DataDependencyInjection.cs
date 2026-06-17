@@ -50,7 +50,6 @@ namespace Payment.Services.Infra.Database
             });
 
             services.AddScoped<IPaymentRepository,DynamoDbPaymentRepository>();
-            services.AddScoped<IProcessedEventRepository,DynamoDbProcessedEventRepository>();
             services.AddScoped<IOutboxRepository, DynamoDbOutboxRepository>();
             services.AddScoped<IIdempotencyRepository, DbIdempotencyRepository>();
             services.AddScoped<IIdempotencyService, IdempotencyService>();

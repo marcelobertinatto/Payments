@@ -1,6 +1,7 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
+using BuildingBlocks.Idempotency.Constants;
 using BuildingBlocks.Idempotency.Models;
 using BuildingBlocks.Idempotency.Repository.Interfaces;
 using BuildingBlocks.Middleware.Exceptions;
@@ -20,14 +21,61 @@ namespace BuildingBlocks.Idempotency.Repository
             return await _context.LoadAsync<IdempotencyRecord>(idempotencyKey, cancellationToken);
         }
 
+        public async Task MarkCompletedAsync(string key, CancellationToken cancellationToken)
+        {
+            var record = await GetAsync(key, cancellationToken);
+
+            if (record is null)
+            {
+                throw new AppException($"Idempotency record not found: {key}");
+            }
+
+            record.UpdatedAtUtc = DateTime.UtcNow.ToString("O");
+            record.Status = IdempotencyStatus.Completed;
+
+            await _context.SaveAsync(record, cancellationToken);
+        }
+
+        public async Task MarkFailedAsync(string key, CancellationToken cancellationToken)
+        {
+            var record = await GetAsync(key, cancellationToken);
+
+            if (record is null)
+            {
+                throw new AppException($"Idempotency record not found: {key}");
+            }
+
+            record.UpdatedAtUtc = DateTime.UtcNow.ToString("O");
+            record.Status = IdempotencyStatus.Failed;
+
+            await _context.SaveAsync(record, cancellationToken);
+        }
+
+        public async Task MarkProcessingAsync(string key, CancellationToken cancellationToken)
+        {
+            var record = await GetAsync(key, cancellationToken);
+
+            if (record is null)
+            {
+                throw new AppException($"Idempotency record not found: {key}");
+            }
+
+            record.UpdatedAtUtc = DateTime.UtcNow.ToString("O");
+            record.Status = IdempotencyStatus.Processing;
+
+            await _context.SaveAsync(record, cancellationToken);
+        }
+
         public async Task<bool> TryAcquireAsync(string idempotencyKey, string type, string referenceId, TimeSpan ttl, CancellationToken cancellationToken)
         {
             var record = new IdempotencyRecord
             {
                 IdempotencyKey = idempotencyKey,
                 Type = type,
+                Status = IdempotencyStatus.Processing,
                 ReferenceId = referenceId,
                 CreatedAtUtc = DateTime.UtcNow.ToString("O"),
+                UpdatedAtUtc = DateTime.UtcNow.ToString("O"),
                 ExpiresAt = DateTimeOffset.UtcNow.Add(ttl).ToUnixTimeSeconds()
             };
 

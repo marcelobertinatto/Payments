@@ -18,6 +18,21 @@ namespace BuildingBlocks.Idempotency.Services
             return await _repository.GetAsync(key, cancellationToken);
         }
 
+        public async Task MarkCompletedAsync(string key, CancellationToken cancellationToken)
+        {
+            await _repository.MarkCompletedAsync(key, cancellationToken);
+        }
+
+        public async Task MarkFailedAsync(string key, CancellationToken cancellationToken)
+        {
+            await _repository.MarkFailedAsync(key, cancellationToken);
+        }
+
+        public async Task MarkProcessingAsync(string key, CancellationToken cancellationToken)
+        {
+            await _repository.MarkProcessingAsync(key, cancellationToken);
+        }
+
         public async Task<bool> TryAcquireAsync(string key, string type, string referenceId, TimeSpan ttl, CancellationToken cancellationToken)
         {
             return await _repository.TryAcquireAsync(key, type, referenceId, ttl, cancellationToken);
