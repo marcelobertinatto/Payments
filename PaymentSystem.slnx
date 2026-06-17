@@ -6,6 +6,9 @@
   <Folder Name="/BuildingBlocks/Docker/">
     <File Path="docker-compose.yml" />
   </Folder>
+  <Folder Name="/BuildingBlocks/Idempotency/">
+    <Project Path="BuildingBlocks.Idempotency/BuildingBlocks.Idempotency.csproj" Id="cbfeb264-a5c9-4fd0-9b91-33a0562ad381" />
+  </Folder>
   <Folder Name="/BuildingBlocks/Logging/">
     <Project Path="BuildingBlocks.Logging/BuildingBlocks.Logging.csproj" Id="0e508e0d-ed3c-4939-978e-7349089ebbce" />
   </Folder>
@@ -26,6 +29,7 @@
     <Project Path="Payment.Services.NotificationServices/Payment.Services.NotificationServices.csproj" Id="3c0b89a7-d2f4-4736-98b8-16cf20c69b23" />
   </Folder>
   <Folder Name="/Services/Payment/">
+    <Project Path="OutboxWorker/Payment.Services.OutboxWorker.csproj" Id="f7392f20-341b-48ff-9d44-d10932e2901a" />
     <Project Path="Payment.API/Payment.Services.API.csproj" />
     <Project Path="Payment.Application/Payment.Services.Application.csproj" />
     <Project Path="Payment.Domain/Payment.Services.Domain.csproj" />

@@ -17,6 +17,20 @@ namespace Payment.Services.Notification.Infrastructure.Setup
                 durable: true,
                 exclusive: false,
                 autoDelete: false);
+
+            await channel.QueueDeclareAsync(
+            queue: RabbitMqQueues.NotificationRetry,
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
+            arguments: new Dictionary<string, object?>
+            {
+                ["x-message-ttl"] = 30000,
+
+                ["x-dead-letter-exchange"] = "",
+
+                ["x-dead-letter-routing-key"] = RabbitMqQueues.Notification
+            });
         }
     }
 }

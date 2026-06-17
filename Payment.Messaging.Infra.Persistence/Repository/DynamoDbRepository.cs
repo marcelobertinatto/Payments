@@ -7,16 +7,10 @@ namespace BuildingBlocks.Messaging.Persistence.Repository
 {
     public class DynamoDbRepository : IDynamoDbRepository
     {
-        private readonly DynamoDBContext _context;
-        public DynamoDbRepository()
+        private readonly IDynamoDBContext _context;
+        public DynamoDbRepository(IDynamoDBContext context)
         {
-            var config = new AmazonDynamoDBConfig
-            {
-                ServiceURL = "http://localhost:8000"
-            };
-
-            var client = new AmazonDynamoDBClient(config);
-            _context = new DynamoDBContext(client);
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
         public async Task<PaymentEntity> GetAsync(string id)
         {

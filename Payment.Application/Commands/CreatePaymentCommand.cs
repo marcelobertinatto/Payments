@@ -2,5 +2,5 @@
 
 namespace Payment.Services.Application.Commands
 {
-    public record CreatePaymentCommand(decimal Amount, string Currency, string CustomerEmail, string CorrelationId);
+    public record CreatePaymentCommand(decimal Amount, string Currency, string CustomerEmail, string CorrelationId, string IdempotencyKey);
 }

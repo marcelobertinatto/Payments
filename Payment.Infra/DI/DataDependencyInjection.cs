@@ -1,6 +1,11 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.Runtime;
+using BuildingBlocks.Idempotency.Repository;
+using BuildingBlocks.Idempotency.Repository.Interfaces;
+using BuildingBlocks.Idempotency.Services;
+using BuildingBlocks.Idempotency.Services.Interfaces;
+using BuildingBlocks.Messaging.Persistence.Repository;
 using BuildingBlocks.Messaging.Persistence.Repository.Interface;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,6 +51,9 @@ namespace Payment.Services.Infra.Database
 
             services.AddScoped<IPaymentRepository,DynamoDbPaymentRepository>();
             services.AddScoped<IProcessedEventRepository,DynamoDbProcessedEventRepository>();
+            services.AddScoped<IOutboxRepository, DynamoDbOutboxRepository>();
+            services.AddScoped<IIdempotencyRepository, DbIdempotencyRepository>();
+            services.AddScoped<IIdempotencyService, IdempotencyService>();
             services.AddSingleton<IEventBus, KafkaEventBus>();
 
             return services;

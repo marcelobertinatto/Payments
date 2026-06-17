@@ -7,6 +7,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Channels;
 
 namespace Payment.Services.Notification.Worker.Workers
 {
@@ -151,27 +152,27 @@ namespace Payment.Services.Notification.Worker.Workers
                 return;
             }
 
-            await RepublishForRetryAsync(ea,retryCount + 1);
+            await PublishToRetryQueueAsync(ea,retryCount + 1);
 
             await _channel.BasicAckAsync(ea.DeliveryTag,false);
         }
 
-        private async Task RepublishForRetryAsync(BasicDeliverEventArgs ea,int retryCount)
+        private async Task PublishToRetryQueueAsync(BasicDeliverEventArgs ea,int retryCount)
         {
-            var props =
-                new BasicProperties
-                {
-                    Headers = RabbitMqRetryHelper.CreateRetryHeaders(retryCount)!
-                };
+            var props = new BasicProperties
+            {
+                Persistent = true,
+                Headers = RabbitMqRetryHelper.CreateRetryHeaders(retryCount)
+            };
 
             await _channel.BasicPublishAsync(
                 exchange: "",
-                routingKey: RabbitMqQueues.Notification,
+                routingKey: RabbitMqQueues.NotificationRetry,
                 mandatory: false,
                 basicProperties: props,
                 body: ea.Body);
 
-            _logger.LogWarning("Message republished. RetryCount={RetryCount}",retryCount);
+            _logger.LogWarning("Message moved to retry queue. RetryCount={RetryCount}",retryCount);
         }
 
         private async Task PublishToDlqAsync(BasicDeliverEventArgs ea,int retryCount)

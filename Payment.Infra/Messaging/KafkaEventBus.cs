@@ -24,7 +24,7 @@ namespace Payment.Services.Infra.Messaging
 
             _producer = new ProducerBuilder<string, string>(config).Build();
         }
-        public async Task PublishAsync(string topic, string key, object message)
+        public async Task PublishAsync<T>(string topic, string key, T message)
         {
             try
             {
@@ -43,6 +43,16 @@ namespace Payment.Services.Infra.Messaging
             {
                 _logger.LogError($"There is an error happening. Error: '{ex.Message}'.");
             }
+        }
+
+        public async Task PublishRawAsync(string topic, string key, string json)
+        {
+            await _producer.ProduceAsync(topic,
+            new Message<string, string>
+            {
+                Key = key,
+                Value = json
+            });
         }
     }
 }
