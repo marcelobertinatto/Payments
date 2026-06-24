@@ -22,6 +22,9 @@
   <Folder Name="/BuildingBlocks/Persistence/">
     <Project Path="Payment.Messaging.Infra.Persistence/BuildingBlocks.Messaging.Persistence.csproj" Id="d8be9734-1f0a-4d87-a236-1dcc4ccc86fb" />
   </Folder>
+  <Folder Name="/BuildingBlocks/Transaction/">
+    <Project Path="BuildingBlocks.Transaction/BuildingBlocks.Transaction.csproj" Id="25530efc-4d5d-4562-8f40-b4fee5bf541a" />
+  </Folder>
   <Folder Name="/Services/" />
   <Folder Name="/Services/Notification/">
     <Project Path="Payment.Notification.Infrastructure/Payment.Services.Notification.Infrastructure.csproj" />

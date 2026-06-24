@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BuildingBlocks.Contracts\BuildingBlocks.Contracts.csproj" />
     <ProjectReference Include="..\BuildingBlocks.Idempotency\BuildingBlocks.Idempotency.csproj" />
+    <ProjectReference Include="..\BuildingBlocks.Transaction\BuildingBlocks.Transaction.csproj" />
     <ProjectReference Include="..\Payment.Domain\Payment.Services.Domain.csproj" />
     <ProjectReference Include="..\Payment.Messaging.Infra.Persistence\BuildingBlocks.Messaging.Persistence.csproj" />
   </ItemGroup>

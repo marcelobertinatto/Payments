@@ -1,12 +1,16 @@
-﻿using BuildingBlocks.Contracts;
+﻿using Amazon.DynamoDBv2.Model;
+using BuildingBlocks.Contracts;
 using BuildingBlocks.Idempotency.Constants;
+using BuildingBlocks.Idempotency.Models;
 using BuildingBlocks.Idempotency.Services.Interfaces;
 using BuildingBlocks.Messaging.Persistence.Model;
 using BuildingBlocks.Messaging.Persistence.Repository.Interface;
 using BuildingBlocks.Middleware.Exceptions;
+using BuildingBlocks.Transaction.Interfaces;
 using Payment.Services.Application.Commands;
 using Payment.Services.Application.Mappings;
 using Payment.Services.Domain.Interfaces;
+using Payment.Services.Domain.Model;
 using System.Text.Json;
 
 namespace Payment.Services.Application.Handlers
@@ -17,69 +21,82 @@ namespace Payment.Services.Application.Handlers
         private readonly IEventBus _eventBus;
         private readonly IOutboxRepository _outboxRepository;
         private readonly IIdempotencyService _idempotencyService;
+        private readonly IDynamoDbTransaction _transaction;
 
-        public CreatePaymentHandler(IPaymentRepository repo, IEventBus eventBus, IOutboxRepository outboxRepository, IIdempotencyService idempotencyService)
+        public CreatePaymentHandler(IPaymentRepository repo, IEventBus eventBus, IOutboxRepository outboxRepository, IIdempotencyService idempotencyService, IDynamoDbTransaction transaction)
         {
             _repo = repo;
             _eventBus = eventBus;
             _outboxRepository = outboxRepository;
             _idempotencyService = idempotencyService;
+            _transaction = transaction;
         }
 
         public async Task<string> Handle(CreatePaymentCommand command, CancellationToken cancellationToken)
         {
-            var payment = Domain.Model.Payment.Create(command.Amount, command.Currency, command.CustomerEmail, command.CorrelationId);
-
-            //this method is used to handle the case when the same request is sent multiple times with the same idempotency key. It will wait for the existing payment to be created and return its ID instead of creating a new one.
-            var acquired = await _idempotencyService.TryAcquireAsync(command.IdempotencyKey, IdempotencyTypes.PaymentRequest, IdempotencyConstants.PendingReferenceId, IdempotencyTtl.PaymentRequest,cancellationToken);
-
-            if (!acquired)
+            try
             {
-                //this method is used to wait for the existing payment to be created by polling the idempotency record until it has a reference id or a timeout occurs
-                return await WaitForExistingPaymentAsync(command.IdempotencyKey, cancellationToken);
-            }
+                var existing = await _idempotencyService.GetAsync(command.IdempotencyKey, cancellationToken);
 
-            //saving payment into Payment table in DynamoDB
-            await _repo.SaveAsync(payment);
-
-            //it's used for updating the PENDING state for Payment.Id in Idempotency table to avoid multiple creation of the same payment for the same idempotency key
-            await _idempotencyService.UpdateReferenceIdAsync(command.IdempotencyKey, payment.Id, cancellationToken);
-
-            var createdEvent = payment.ToCreatedEvent(command.CorrelationId);
-
-            //this outbox pattern is used to ensure that the event is published only after the payment is successfully saved in the database. The event will be stored in the outbox table and then published by a background service.
-            await _outboxRepository.SaveAsync(
-                new OutboxEvent
+                if (existing == null)
                 {
-                    EventId = createdEvent.EventId.ToString(),
 
-                    EventType = nameof(PaymentCreatedEvent),
+                    var payment = Domain.Model.Payment.Create(command.Amount, command.Currency, command.CustomerEmail, command.CorrelationId);
 
-                    Payload = JsonSerializer.Serialize(createdEvent),
+                    //this is used for creating the objects to be used into a single transaction.
+                    //it will be guaranteed that either all the operations will be successful or none of them will be applied.
+                    IdempotencyRecord idempotencyRecord = CreateIdempotencyRecord(command.IdempotencyKey);
+                    PaymentCreatedEvent createdEvent = payment.ToCreatedEvent(command.CorrelationId);
+                    OutboxEvent outboxEvent = CreateOutboxEvent(createdEvent, payment.Id);
 
-                    Status = "Pending",
+                    //used for adding a generic object to be used in the transaction, it will be used for the payment and the outbox event.
+                    _transaction.AddPut(payment);
+                    _transaction.AddPut(outboxEvent);
+                    //this part is used for checking the idempotency record, if it already exists, it will throw an exception, if not, it will be added to the transaction.
+                    _transaction.AddConditionalPut(idempotencyRecord, "attribute_not_exists(IdempotencyKey)");
 
-                    CreatedAtUtc = DateTime.UtcNow.ToString("O")
-                });
+                    //execute the transaction, if any of the operations fail, none of them will be applied into DynamoDB.
+                    await _transaction.CommitAsync(cancellationToken);
 
-            return payment.Id;
+                    //after saved, return the payment id to the caller.
+                    return payment.Id;
+                }
+                else
+                {
+                    return existing.ReferenceId;
+                }
+            }
+            catch (TransactionCanceledException)
+            {                
+                throw new DuplicateRequestException(command.IdempotencyKey);                
+            }
         }
 
-        private async Task<string> WaitForExistingPaymentAsync(string idempotencyKey, CancellationToken cancellationToken)
+        private IdempotencyRecord CreateIdempotencyRecord(string idempotencyKey)
         {
-            for (int attempt = 0; attempt < IdempotencyConstants.MaxPollingAttempts; attempt++)
+            return new IdempotencyRecord
             {
-                var record = await _idempotencyService.GetAsync(idempotencyKey, cancellationToken);
+                IdempotencyKey =  idempotencyKey,
+                Type = IdempotencyTypes.PaymentRequest,
+                Status = IdempotencyStatus.Completed,
+                ReferenceId = IdempotencyConstants.PendingReferenceId,
+                CreatedAtUtc = DateTime.UtcNow.ToString("O"),
+                UpdatedAtUtc = DateTime.UtcNow.ToString("O"),
+                ExpiresAt = DateTimeOffset.UtcNow .AddDays(1) .ToUnixTimeSeconds()
+            };
+        }
 
-                if (record is not null && record.ReferenceId != IdempotencyConstants.PendingReferenceId)
-                {
-                    return record.ReferenceId;
-                }
-
-                await Task.Delay(IdempotencyConstants.PollingDelayMilliseconds, cancellationToken);
-            }
-
-            throw new AppException($"Payment creation is still in progress for idempotency key '{idempotencyKey}'.");
+        private OutboxEvent CreateOutboxEvent(PaymentCreatedEvent paymentCreatedEvent, string paymentId)
+        {
+            return new OutboxEvent
+            {
+                EventId = paymentCreatedEvent.EventId.ToString(),
+                AggregateId = paymentId,
+                Topic = "payments-created",
+                Payload = JsonSerializer.Serialize(paymentCreatedEvent),
+                Status = OutboxStatus.Pending,
+                CreatedAtUtc = DateTime.UtcNow.ToString("O")
+            };
         }
     }
 }

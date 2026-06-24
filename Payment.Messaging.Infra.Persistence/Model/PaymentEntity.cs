@@ -2,7 +2,7 @@
 
 namespace BuildingBlocks.Messaging.Persistence.Model
 {
-    [DynamoDBTable("Payments")]
+    [DynamoDBTable("Payment")]
     public class PaymentEntity
     {
         [DynamoDBHashKey]

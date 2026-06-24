@@ -8,6 +8,10 @@ namespace BuildingBlocks.Messaging.Persistence.Model
         [DynamoDBHashKey]
         public string EventId { get; set; } = default!;
 
+        public string AggregateId { get; set; } = default!;
+
+        public string Topic { get; set; } = default!;
+
         public string EventType { get; set; } = default!;
 
         public string Payload { get; set; } = default!;

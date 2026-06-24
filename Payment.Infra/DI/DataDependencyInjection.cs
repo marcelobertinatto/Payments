@@ -7,6 +7,8 @@ using BuildingBlocks.Idempotency.Services;
 using BuildingBlocks.Idempotency.Services.Interfaces;
 using BuildingBlocks.Messaging.Persistence.Repository;
 using BuildingBlocks.Messaging.Persistence.Repository.Interface;
+using BuildingBlocks.Transaction.DynamoDB;
+using BuildingBlocks.Transaction.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Payment.Services.Domain.Interfaces;
@@ -53,6 +55,7 @@ namespace Payment.Services.Infra.Database
             services.AddScoped<IOutboxRepository, DynamoDbOutboxRepository>();
             services.AddScoped<IIdempotencyRepository, DbIdempotencyRepository>();
             services.AddScoped<IIdempotencyService, IdempotencyService>();
+            services.AddScoped<IDynamoDbTransaction, DynamoDbTransaction>();
             services.AddSingleton<IEventBus, KafkaEventBus>();
 
             return services;
